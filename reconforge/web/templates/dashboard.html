@@ -1,0 +1,251 @@
+<!-- ============================================================
+     File: reconforge/web/templates/dashboard.html
+     ============================================================ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RECONFORGE // DEDSEC RECON CONSOLE</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🜲</text></svg>">
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<header class="topbar">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" fill="none"
+               stroke="#00ff9c" stroke-width="2.5"/>
+      <polygon points="32,14 48,23 48,41 32,50 16,41 16,23" fill="none"
+               stroke="#ff003c" stroke-width="1.6" opacity=".85"/>
+      <circle cx="32" cy="32" r="5" fill="#00ff9c"/>
+      <line x1="32" y1="4"  x2="32" y2="14" stroke="#00ff9c" stroke-width="2"/>
+      <line x1="32" y1="50" x2="32" y2="60" stroke="#00ff9c" stroke-width="2"/>
+    </svg>
+    <div class="brand-text">
+      <h1>RECON<span>FORGE</span></h1>
+      <small>DEDSEC // RECON &amp; MIRROR SUITE v{{ version }}</small>
+    </div>
+  </div>
+  <div class="status">
+    <span class="pulse"></span> MIRROR ONLINE
+    <span class="sep">|</span>
+    <a href="/api/report" target="_blank">RAW JSON</a>
+  </div>
+</header>
+
+<!-- ================= STATS ================= -->
+<section class="stats">
+  <div class="stat">
+    <div class="stat-label">TARGET</div>
+    <div class="stat-value small" id="stat-target">{{ report_obj.host }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">PAGES MIRRORED</div>
+    <div class="stat-value">{{ report_obj.clone.pages|length }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">ASSETS</div>
+    <div class="stat-value">{{ report_obj.clone.assets|length }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">SUBDOMAINS</div>
+    <div class="stat-value">{{ report_obj.subdomains|length }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">OPEN PORTS</div>
+    <div class="stat-value accent">{{ report_obj.ports.open|length }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">TECHNOLOGIES</div>
+    <div class="stat-value accent">{{ report_obj.technologies.technologies|length }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">DURATION</div>
+    <div class="stat-value">{{ report_obj.duration }}s</div>
+  </div>
+</section>
+
+<!-- ================= TABS ================= -->
+<nav class="tabs">
+  <button class="tab active" data-tab="mirror">◈ MIRROR</button>
+  <button class="tab" data-tab="tech">◈ TECHNOLOGIES</button>
+  <button class="tab" data-tab="ports">◈ PORTS</button>
+  <button class="tab" data-tab="subs">◈ SUBDOMAINS</button>
+  <button class="tab" data-tab="pages">◈ PAGES</button>
+  <button class="tab" data-tab="headers">◈ HEADERS</button>
+  <button class="tab" data-tab="logs">◈ LOGS</button>
+</nav>
+
+<main>
+
+  <!-- ---------- MIRROR ---------- -->
+  <section class="panel active" id="tab-mirror">
+    <div class="browser">
+      <div class="browser-bar">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+        <input class="urlbar" id="urlbar"
+               value="/cloned/{{ report_obj.clone.entry }}" readonly>
+        <button class="btn" onclick="reloadFrame()">⟳</button>
+        <button class="btn" onclick="openFrame()">↗</button>
+      </div>
+      <iframe id="mirror-frame" src="/cloned/{{ report_obj.clone.entry }}"></iframe>
+    </div>
+    <div class="note">
+      Offline mirror served from <code>{{ report_obj.clone.dir }}</code> —
+      links, CSS, JS, images and fonts have been rewritten to local paths.
+    </div>
+  </section>
+
+  <!-- ---------- TECHNOLOGIES ---------- -->
+  <section class="panel" id="tab-tech">
+    <h2>Technology Fingerprint</h2>
+    <table class="grid">
+      <thead><tr><th>Technology</th><th>Categories</th><th>Confidence</th><th>Evidence</th></tr></thead>
+      <tbody>
+      {% for t in report_obj.technologies.technologies %}
+        <tr>
+          <td class="hl">{{ t.name }}</td>
+          <td>{{ t.categories|join(', ') }}</td>
+          <td><div class="bar"><span style="width:{{ t.confidence }}%"></span></div>{{ t.confidence }}%</td>
+          <td class="dim">{{ t.evidence }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="dim">No technologies detected.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ---------- PORTS ---------- -->
+  <section class="panel" id="tab-ports">
+    <h2>Port Scan — {{ report_obj.ports.host }}</h2>
+    <p class="dim">Scanned {{ report_obj.ports.scanned }} ports ·
+       <span class="ok">{{ report_obj.ports.open|length }} open</span> ·
+       <span class="bad">{{ report_obj.ports.closed }} closed/filtered</span></p>
+    <table class="grid">
+      <thead><tr><th>Port</th><th>State</th><th>Service</th><th>Banner</th></tr></thead>
+      <tbody>
+      {% for p in report_obj.ports.all_ports %}
+        <tr class="{{ 'row-open' if p.state == 'open' else '' }}">
+          <td class="hl">{{ p.port }}</td>
+          <td><span class="pill {{ p.state }}">{{ p.state }}</span></td>
+          <td>{{ p.service }}</td>
+          <td class="dim">{{ p.banner or '—' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ---------- SUBDOMAINS ---------- -->
+  <section class="panel" id="tab-subs">
+    <h2>Subdomain Enumeration</h2>
+    <table class="grid">
+      <thead><tr><th>Hostname</th><th>IP Address</th></tr></thead>
+      <tbody>
+      {% for s in report_obj.subdomains %}
+        <tr><td class="hl">{{ s.name }}</td><td>{{ s.ip }}</td></tr>
+      {% else %}
+        <tr><td colspan="2" class="dim">No subdomains resolved.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ---------- PAGES ---------- -->
+  <section class="panel" id="tab-pages">
+    <h2>Mirrored Pages ({{ report_obj.clone.pages|length }})</h2>
+    <table class="grid">
+      <thead><tr><th>#</th><th>URL</th><th>Local Path</th><th>Status</th><th>Size</th><th>Title</th></tr></thead>
+      <tbody>
+      {% for p in report_obj.clone.pages %}
+        <tr>
+          <td class="dim">{{ loop.index }}</td>
+          <td class="hl"><a href="{{ p.url }}" target="_blank">{{ p.url }}</a></td>
+          <td><a href="/cloned/{{ p.local }}" target="_blank">{{ p.local }}</a></td>
+          <td>{{ p.status }}</td>
+          <td>{{ '%.1f'|format(p.size/1024) }} KB</td>
+          <td class="dim">{{ p.title }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Assets ({{ report_obj.clone.assets|length }})</h2>
+    <table class="grid">
+      <thead><tr><th>URL</th><th>Local</th><th>Type</th><th>Size</th></tr></thead>
+      <tbody>
+      {% for a in report_obj.clone.assets %}
+        <tr>
+          <td class="dim">{{ a.url[:110] }}</td>
+          <td><a href="/cloned/{{ a.local }}" target="_blank">{{ a.local }}</a></td>
+          <td class="dim">{{ a.type }}</td>
+          <td>{{ '%.1f'|format(a.size/1024) }} KB</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ---------- HEADERS ---------- -->
+  <section class="panel" id="tab-headers">
+    <h2>HTTP Response Headers</h2>
+    <table class="grid">
+      <thead><tr><th>Header</th><th>Value</th></tr></thead>
+      <tbody>
+      {% for k, v in report_obj.technologies.headers.items() %}
+        <tr><td class="hl">{{ k }}</td><td class="dim">{{ v }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ---------- LOGS ---------- -->
+  <section class="panel" id="tab-logs">
+    <h2>Operation Log</h2>
+    <pre class="console">
+{% for l in report_obj.logs %}<span class="lvl-{{ l.level }}">[{{ l.ts }}] [{{ l.level }}]</span> {{ l.msg }}
+{% endfor %}
+    </pre>
+  </section>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="footer">
+  <pre class="footer-logo">{{ logo }}</pre>
+  <div class="footer-quote">"{{ quote }}"</div>
+  <div class="footer-meta">
+    RECONFORGE v{{ version }} — crafted by <span class="hl">DEDSEC</span><br>
+    <span class="dim">We are the ghost in the machine.</span>
+  </div>
+</footer>
+
+<script>
+  // tab switching
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  function reloadFrame() {
+    const f = document.getElementById('mirror-frame');
+    f.src = f.src;
+  }
+  function openFrame() {
+    window.open(document.getElementById('mirror-frame').src, '_blank');
+  }
+
+  // terminal-style boot line
+  console.log("%cRECONFORGE // DEDSEC", "color:#00ff9c;font-size:22px;font-weight:bold;");
+  console.log("%cWe are the ghost in the machine.", "color:#ff003c;font-size:13px;");
+</script>
+</body>
+</html>
