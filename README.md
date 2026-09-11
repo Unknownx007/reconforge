@@ -35,9 +35,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Requires Python 3.9+. Works on Linux, macOS and Windows.
+*Requires Python 3.9+. Works on Linux, macOS and Windows.*
 
-#Usage
+## Usage
 ```
 # Basic full run
 python -m reconforge example.com
@@ -60,7 +60,7 @@ python -m reconforge example.com --ports 22,80,443,8080-8090 \
 python -m reconforge example.com -y
 ```
 
-#Options
+## Options
 ```
 -o, --output DIR      Output directory (default ./reconforge_output)
 --max-pages N         Max pages to mirror          (default 200)
@@ -81,7 +81,7 @@ python -m reconforge example.com -y
 --version             Print version
 ```
 
-#Output layout
+## Output layout
 ```
 reconforge_output/
 └── example.com/
@@ -94,26 +94,26 @@ reconforge_output/
 
 ```
 
-##Web console
+## Web console
 After the run, RECONFORGE serves a dark-themed dashboard at
 http://127.0.0.1:8899/ with:
 
-MIRROR — embedded browser showing the cloned site offline
+- MIRROR — embedded browser showing the cloned site offline
 
-TECHNOLOGIES — fingerprint table with confidence bars + evidence
+- TECHNOLOGIES — fingerprint table with confidence bars + evidence
 
-PORTS — open/closed table with service names and banners
+- PORTS — open/closed table with service names and banners
 
-SUBDOMAINS — resolved hostnames + IPs
+- SUBDOMAINS — resolved hostnames + IPs
 
-PAGES / ASSETS — every mirrored file with size and local path
+- PAGES / ASSETS — every mirrored file with size and local path
 
-HEADERS — raw HTTP response headers
+- HEADERS — raw HTTP response headers
 
-LOGS — the full colored operation log
+- LOGS — the full colored operation log
 
 
-#Legal
+# Legal
 ```
 RECONFORGE performs active reconnaissance and full site mirroring.
 Running it against systems you do not own or lack explicit written
@@ -124,7 +124,7 @@ solely responsible for your actions.
 ```
 **DEDSEC** is not liable for misuse.
 
-Crafted by DEDSEC — "We don't break in. We were never locked out."
+*Crafted by DEDSEC — "We don't break in. We were never locked out."*
 
 
 
