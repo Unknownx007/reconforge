@@ -24,7 +24,7 @@ CLI-first, with a local web console for reviewing results.
 ## Install
 
 ```bash
-git clone <your-repo> reconforge
+git clone https://github.com/Unknownx007/reconforge
 cd reconforge
 python -m venv .venv
 # Linux/macOS
@@ -38,6 +38,8 @@ pip install -r requirements.txt
 *Requires Python 3.9+. Works on Linux, macOS and Windows.*
 
 ## Usage
+
+**Warning ! DONT GO INTO THE SUBFOLDER "reconforge", RUN THESE COMMANDS DIRECLTY (OUTSIDE THE SUBFOLDER) IF YOU DONT KNOW HOW TO USE SCRIPTS AS AN MODULE**
 ```
 # Basic full run
 python -m reconforge example.com
