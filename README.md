@@ -1,4 +1,6 @@
 # RECONFORGE
+<img width="578" height="256" alt="0" src="https://github.com/user-attachments/assets/3ed1fea4-46e8-423c-a5ee-7aca98520526" />
+
 ### DEDSEC // Recon & Mirror Suite
 
 > *"We are the ghost in the machine."*
